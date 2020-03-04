@@ -530,13 +530,13 @@ export class Util {
   }
 
   public startDocker() {
-    console.log('waiting... started Docker')
+    console.log('starting... Docker')
     execSync('./bin/start-docker.sh')
     console.log('started Docker')
   }
 
   public stopDocker() {
-    console.log('waiting... stopped Docker')
+    console.log('stopping... Docker')
     execSync('./bin/stop-docker.sh')
     console.log('stopped Docker')
   }
