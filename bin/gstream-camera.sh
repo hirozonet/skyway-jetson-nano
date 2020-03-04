@@ -12,7 +12,7 @@ gst-launch-1.0 nvarguscamerasrc ! \
   'video/x-raw,width=640,height=480' ! \
   nvvidconv ! \
   clockoverlay time-format="%Y/%m/%d %H:%M:%S" font-desc="Sans,24" ! \
-  omxh264enc target-bitrate=2000000 control-rate=variable ! \
+  omxh264enc bitrate=2000000 ! \
   h264parse ! \
   rtph264pay config-interval=1 pt=96 ! \
   udpsink host=127.0.0.1 port=$port
