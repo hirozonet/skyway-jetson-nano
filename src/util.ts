@@ -122,10 +122,9 @@ export class Util {
 
   public async waitMedia(peer_id: string, peer_token: string): Promise<string | null> {
     try {
-      const ans = await Promise.all([this.createMedia(true), this.createRtcp(), this.waitCall(peer_id, peer_token)])
-      const video_media_info = ans[0]
-      const video_rtcp_media_info = ans[1]
-      const media_connection_id = ans[2]
+      const video_media_info = await this.createMedia(true)
+      const video_rtcp_media_info = await this.createRtcp()
+      const media_connection_id = await this.waitCall(peer_id, peer_token)
       this.media_manage[media_connection_id] = {
         video_media_info: video_media_info,
         audio_media_info: null,
@@ -487,26 +486,27 @@ export class Util {
   }
 
   public getSerialNUmber(): string | null {
-    var regex = {
-      serial: /^Serial\s*:\s([0-9a-f]{16})$/,
-    };
-    var fn = "/proc/cpuinfo";
-    var isExist = this.isExistFile(fn);
-    var serial: string | null = null;
-    var match: RegExpMatchArray | null = null;
+    const regex = {
+      serial: /([0-9a-f]{13})/,
+    }
+    const fn = "/proc/device-tree/serial-number"
+    const isExist = this.isExistFile(fn)
+    let serial: string | null = null
+    let match: RegExpMatchArray | null = null
     if (isExist) {
-      var content = fs.readFileSync(fn, 'utf8');
-      var lines = content.split(/\r\n|\r|\n/);
+      const content = fs.readFileSync(fn, 'utf8')
+      const lines = content.split(/\r\n|\r|\n/)
       lines.forEach(function(line) {
+        console.log("line:" + line)
         if (regex.serial.test(line)) {
-          match = line.match(regex.serial);
+	        match = line.match(regex.serial)
           if (!!match) {
-            serial = match[1];
+            serial = match[1]
           }
         }
-      });
+      })
     }
-    return serial;
+    return serial
   }
 
   private isExistFile(file: string): boolean {

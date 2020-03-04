@@ -22,7 +22,7 @@ export class Control {
   constructor() {
     this.api_key = !!process.env.API_KEY? process.env.API_KEY: ""
     this.util = new Util()
-    this.peer_id = "SSG_" + (!!this.util.getSerialNUmber()? this.util.getSerialNUmber(): "tsumugi")
+    this.peer_id = "SSG_" + (!!this.util.getSerialNUmber()? this.util.getSerialNUmber(): "jetson-nano")
     this.video_params = {
       ip_v4: this.recv_addr,
       port: this.video_recv_port
