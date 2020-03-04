@@ -497,7 +497,6 @@ export class Util {
       const content = fs.readFileSync(fn, 'utf8')
       const lines = content.split(/\r\n|\r|\n/)
       lines.forEach(function(line) {
-        console.log("line:" + line)
         if (regex.serial.test(line)) {
 	        match = line.match(regex.serial)
           if (!!match) {
