@@ -9,7 +9,7 @@ ENV LOG_LEVEL "error"
 WORKDIR /skyway
 
 RUN apk add --no-cache --virtual tmpPackages ca-certificates wget && \
-    wget https://github.com/skyway/skyway-webrtc-gateway/releases/download/0.3.0/gateway_linux_arm && \
+    wget https://github.com/skyway/skyway-webrtc-gateway/releases/download/0.3.2/gateway_linux_arm && \
     chmod +x ./gateway_linux_arm && \
     apk add libgcc && \
     apk add libuuid && \
