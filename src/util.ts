@@ -293,7 +293,8 @@ export class Util {
   public async waitEventFor(options: any, event: string): Promise<{}> {
     try {
       const res = await axios.request<string>(options)
-      const eventRes: IEventRes = JSON.parse(res.data)
+      // console.log("waitEventFor res.data:", res.data)
+      const eventRes: IEventRes = typeof res.data === "string" ? JSON.parse(res.data) : res.data
       // console.log("waitEventFor eventRes:", eventRes)
       // console.log("waitEventFor eventRes.event:", eventRes.event)
       if (eventRes.event === event) {
@@ -303,6 +304,7 @@ export class Util {
       }
     } catch (e) {
       // console.error("waitEventFor event:", event, " is failed. error:", e)
+      await new Promise(resolve => setTimeout(resolve, 500))
       return await this.waitEventFor(options, event)
     }
   }
@@ -315,7 +317,7 @@ export class Util {
       headers: {
         "Content-type": "application/json",
       },
-      qs: {
+      params: {
         "token": peer_token
       },
     }
@@ -392,7 +394,7 @@ export class Util {
       headers: {
         "Content-type": "application/json",
       },
-      qs: {
+      params: {
         "token": peer_token
       },
     }
