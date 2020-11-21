@@ -11,7 +11,7 @@ export class Control {
   private audio_recv_port = 20001
   private video_rtcp_recv_port = 20010
   private audio_rtcp_recv_port = 20011
-  
+
   private video_params: IMediaParams
   private audio_params: IMediaParams | null
   private video_rtcp_params: IMediaParams | null

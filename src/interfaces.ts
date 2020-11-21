@@ -111,4 +111,3 @@ export interface IRedirectParams {
   video_rtcp?: IMediaParams,
   audio_rtcp?: IMediaParams
 }
-
