@@ -1,5 +1,5 @@
-import * as request from 'request-promise-native'
-import * as fs from 'fs'
+import axios from 'axios'
+import fs from 'fs'
 import { throws } from 'assert'
 import { ChildProcess, spawn, exec, execSync } from 'child_process'
 import {
@@ -48,18 +48,10 @@ export class Util {
       "peer_id": peer_id,
     }
     const url = this.HOST + '/peers';
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      json: jsonData,
-    }
     try {
-      const res = await request.default(options) as IPeersCreate
-      console.log("createPeer res:", res)
-      return res.params.token
+      const res = await axios.post<IPeersCreate>(url, jsonData)
+      console.log("createPeer res.data:", res.data)
+      return res.data.params.token
     } catch (e) {
       console.error("createPeer is failed. error:" + e)
       throw new Error("createPeer is failed. error:" + e)
@@ -71,21 +63,13 @@ export class Util {
       "is_video": is_video
     }
     const url = this.HOST + '/media'
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      json: jsonData,
-    }
     try {
-      const res = await request.default(options) as IMediaCreate
-      console.log("createMedia res:", res)
+      const res = await axios.post<IMediaCreate>(url, jsonData)
+      console.log("createMedia res.data:", res.data)
       const mediaInfo: IMediaInfo = {
-        id: res.media_id,
-        ip: res.ip_v4,
-        port: res.port
+        id: res.data.media_id,
+        ip: res.data.ip_v4,
+        port: res.data.port
       }
       return mediaInfo
     } catch (e) {
@@ -95,23 +79,14 @@ export class Util {
   }
 
   public async createRtcp(): Promise<IMediaInfo> {
-    const jsonData = {}
     const url = this.HOST + '/media/rtcp'
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      json: jsonData,
-    }
     try {
-      const res = await request.default(options) as IMediaCreate
-      console.log("createRtcp res:", res)
+      const res = await axios.post<IMediaCreate>(url)
+      console.log("createRtcp res.data:", res.data)
       const mediaInfo: IMediaInfo = {
-        id: res.media_id,
-        ip: res.ip_v4,
-        port: res.port
+        id: res.data.media_id,
+        ip: res.data.ip_v4,
+        port: res.data.port
       }
       return mediaInfo
     } catch (e) {
@@ -262,18 +237,10 @@ export class Util {
       "constraints": constraints,
       "redirect_params": redirect_params
     }
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      json: jsonData,
-    }
     try {
-      const res = await request.default(options) as IMediaConnections
-      console.log("call res:", res)
-      return res.params.media_connection_id
+      const res = await axios.post<IMediaConnections>(url, jsonData)
+      console.log("call res.data:", res.data)
+      return res.data.params.media_connection_id
     } catch (e) {
       console.error("call is failed. error:" + e)
       throw new Error("call is failed. error:" + e)
@@ -314,27 +281,19 @@ export class Util {
       "constraints": constraints,
       "redirect_params": redirect_params
     }
-    const options = {
-      url: url,
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      json: jsonData,
-    }
     try {
-      const res = await request.default(options) as IMediaAnswer
-      console.log("answer res:", res)
+      const res = await axios.post<IMediaAnswer>(url, jsonData)
+      console.log("answer res.data:", res.data)
     } catch (e) {
       console.error("answer is failed. error:" + e)
       throw new Error("answer is failed. error:" + e)
     }
   }
-  
+
   public async waitEventFor(options: any, event: string): Promise<{}> {
     try {
-      const res = await request.default(options) as string
-      const eventRes: IEventRes = JSON.parse(res)
+      const res = await axios.request<string>(options)
+      const eventRes: IEventRes = JSON.parse(res.data)
       // console.log("waitEventFor eventRes:", eventRes)
       // console.log("waitEventFor eventRes.event:", eventRes.event)
       if (eventRes.event === event) {
@@ -449,18 +408,13 @@ export class Util {
   public async deletePeer(peer_id: string, peer_token: string) {
     const url = this.HOST + '/peers/' + peer_id
     const options = {
-      url: url,
-      method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-      },
-      qs: {
+      params: {
         "token": peer_token
       },
     }
     try {
-      const res = await request.default(options)
-      console.log("deletePeer res:", res)
+      const res = await axios.delete(url, options)
+      console.log("deletePeer res.data:", res.data)
     } catch (e) {
       console.error("deletePeer is failed. error:" + e)
       throw new Error("deletePeer is failed. error:" + e)
@@ -469,16 +423,9 @@ export class Util {
 
   public async deleteMediaConnections(media_connection_id: string) {
     const url = this.HOST + '/media/connections/' + media_connection_id
-    const options = {
-      url: url,
-      method: "DELETE",
-      headers: {
-        "Content-type": "application/json",
-      },
-    }
     try {
-      const res = await request.default(options)
-      console.log("deleteMedia res:", res)
+      const res = await axios.delete(url)
+      console.log("deleteMedia res.data:", res.data)
     } catch (e) {
       console.error("deleteMedia is failed. error:" + e)
       throw new Error("deleteMedia is failed. error:" + e)
