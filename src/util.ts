@@ -1,7 +1,7 @@
 import axios from 'axios'
 import fs from 'fs'
 import { throws } from 'assert'
-import { ChildProcess, spawn, exec, execSync } from 'child_process'
+import { ChildProcess, spawn, execSync } from 'child_process'
 import {
   IPeersCreate,
   IMediaCreate,
@@ -467,14 +467,45 @@ export class Util {
     }
   }
 
+  public execGstreamLaunch(): ChildProcess {
+    return spawn("./bin/gstream-launch.sh")
+  }
+
+  public killGstreamLaunch(gstreamLaunchProcess: ChildProcess) {
+    console.log('kill gstream-launch pid:' + gstreamLaunchProcess.pid)
+    gstreamLaunchProcess.kill('SIGINT')
+    spawn("pkill", ["-f", "-INT", "port=5000"])
+  }
+
   public execGstreamCamera(video_port: number): ChildProcess {
-    return spawn("./bin/gstream-camera.sh", [String(video_port)])
+    const cmd = 'gst-launch-1.0'
+    const args = [
+      'udpsrc', 'port=5000', '!',
+      'queue', '!',
+      'udpsink', 'host=127.0.0.1', `port=${video_port}`
+    ]
+    return spawn(cmd, args)
   }
 
   public killGstreamCamera(gstreamCametaProcess: ChildProcess, port: number) {
-    gstreamCametaProcess.kill()
-    const arg = "port=" + String(port)
-    spawn("pkill", ["-f", arg])
+    gstreamCametaProcess.kill('SIGINT')
+  }
+
+  public execGstreamRec(port: number, path: string): ChildProcess {
+    const cmd = 'gst-launch-1.0'
+    const args = [
+      '-e',
+      'udpsrc', `port=${port}`, 'caps="application/x-rtp, media=(string)video, encoding-name=(string)H264"', '!',
+      'rtph264depay', '!',
+      'h264parse', '!',
+      'mp4mux', '!',
+      'filesink', `location=${path}`
+    ]
+    return spawn(cmd, args)
+  }
+
+  public killGstreamRec(gstreamRecProcess: ChildProcess, path: string) {
+    gstreamRecProcess.kill('SIGINT')
   }
 
   public startDocker() {
