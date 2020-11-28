@@ -12,12 +12,10 @@ gst-launch-1.0 nvarguscamerasrc ! \
   tee name=s \
     s.src_0 ! \
     queue ! \
-    udpsink host=127.0.0.1 port=5000
-
+    udpsink host=127.0.0.1 port=5000 \
     s.src_1 ! \
     queue ! \
-    udpsink host=127.0.0.1 port=5001
-
+    udpsink host=127.0.0.1 port=5001 \
     s.src_2 ! \
     queue ! \
     udpsink host=127.0.0.1 port=5002
