@@ -1,6 +1,6 @@
 {
   "name": "skyway-jetson-nano",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Send videos using Skyway on Jetson nano.",
   "scripts": {
     "build": "webpack --mode=production",
@@ -11,7 +11,6 @@
   "private": true,
   "devDependencies": {
     "@types/node": "^13.7.7",
-    "@types/request-promise-native": "^1.0.17",
     "ts-loader": "^6.2.1",
     "typescript": "^3.8.3",
     "webpack": "^4.42.0",
@@ -21,6 +20,8 @@
   },
   "dependencies": {
     "axios": "^0.21.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "dayjs": "^1.9.6",
+    "diskusage": "^1.1.3"
   }
 }

@@ -6,8 +6,13 @@ Send videos using Skyway on Jetson nano.
 - Jetson Nano Developer Kit
 - Raspberry Pi Camera Module V2
 ### Software
-- JetPack SD Card Image r32.3.1
-- NodeJS v12
+- JetPack SD Card Image r32.4.4
+- NodeJS v12/v14
+
+### Docker Build
+```
+docker build ./ -t <TAG_NAME>
+```
 
 ## Install Packages
 ```
@@ -19,7 +24,7 @@ npm install
 npm run build
 ```
 
-## Setup API KEY
+## Setup API KEY & Enable/Disable Recording
 ```
 cp .env.sample .env
 ```
