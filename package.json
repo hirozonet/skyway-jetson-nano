@@ -1,6 +1,6 @@
 {
   "name": "skyway-jetson-nano",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Send videos using Skyway on Jetson nano.",
   "scripts": {
     "build": "webpack --mode=production",
