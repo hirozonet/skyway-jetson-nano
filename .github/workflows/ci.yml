@@ -9,9 +9,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: 14.x
 
     steps:
+    - uses: jwalton/gh-find-current-pr@v1
+      if: github.event_name == 'push'
+      id: findPr
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    # This will cancel current push triggered workflow run, or be skipped if there is no current PR.
+    - name: cancelling
+      if: github.event_name == 'push' && steps.findPr.outputs.number
+      uses: andymckay/cancel-action@0.2
+    - run: sleep 5s
+      if: github.event_name == 'push' && steps.findPr.outputs.number
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
