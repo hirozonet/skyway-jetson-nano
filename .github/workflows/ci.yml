@@ -21,8 +21,9 @@ jobs:
     - name: cancelling
       if: github.event_name == 'push' && steps.findPr.outputs.number
       uses: andymckay/cancel-action@0.2
-    - continue-on-error: true
-      run: sleep 5s
+    - run: sleep 5s
+      if: github.event_name == 'push' && steps.findPr.outputs.number
+    - run: exit 0
       if: github.event_name == 'push' && steps.findPr.outputs.number
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
