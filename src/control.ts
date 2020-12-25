@@ -36,31 +36,44 @@ export class Control {
   }
 
   public async start() {
-    try {
-      this.peer_token = await this.util.createPeer(this.api_key, this.peer_id)
-    } catch(e) {
-      console.error(e)
-      this.exit()
-    }
-    if (!this.peer_token) {
-      this.exit()
-      return
-    }
     do {
       try {
-        const media_connection_id = await this.util.waitMedia(this.peer_id, this.peer_token)
-        if (!!media_connection_id) {
-          await this.util.media(
-            media_connection_id,
-            this.video_params,
-            this.audio_params,
-            this.video_rtcp_params,
-            this.audio_rtcp_params)
-        }
-      } catch (e) {
+        this.peer_token = await this.util.createPeer(this.api_key, this.peer_id)
+      } catch(e) {
         console.error(e)
         this.exit()
       }
+      if (!this.peer_token) {
+        this.exit()
+        return
+      }
+      do {
+        try {
+          const media_connection_id = await this.util.waitMedia(this.peer_id, this.peer_token)
+          if (!!media_connection_id) {
+            this.util.media(
+              media_connection_id,
+              this.video_params,
+              this.audio_params,
+              this.video_rtcp_params,
+              this.audio_rtcp_params)
+          }
+        } catch (e) {
+          if (!!e.response && e.response.status == 408) {
+            if (!!this.peer_token) {
+              try {
+                await this.util.deletePeer(this.peer_id, this.peer_token)
+              } catch (e) {
+                console.error("deletePeer error:", e)
+              }
+            }
+            break
+          } else {
+            console.error("start is failed. error:" + e)
+            this.exit()
+          }
+        }
+      } while (this.isLoop)
     } while (this.isLoop)
   }
 
