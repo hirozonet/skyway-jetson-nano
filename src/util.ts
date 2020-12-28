@@ -304,7 +304,7 @@ export class Util {
           const diffHour = now.diff(this.waitEventStartTime, "hour")
           if (diffHour >= 12) {
             this.waitEventStartTime = now
-            console.error(`waitEventFor is failed. error:${e} diffHour:${diffHour}`)
+            console.error(`${now.format()} waitEventFor is failed. error:${e} diffHour:${diffHour}`)
             throw e
           }
         } else {
