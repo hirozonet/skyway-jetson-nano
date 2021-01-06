@@ -1,6 +1,6 @@
 import axios from 'axios'
+import dayjs from 'dayjs'
 import fs from 'fs'
-import { throws } from 'assert'
 import { ChildProcess, spawn, execSync } from 'child_process'
 import {
   IPeersCreate,
@@ -18,16 +18,15 @@ import {
 
 export class Util {
   private HOST = 'http://localhost:8000'
-  private isLoop = true
   private media_manage: {[index: string]: {
     video_media_info: IMediaInfo | null,
     audio_media_info: IMediaInfo | null,
     video_rtcp_media_info: IMediaInfo | null,
     audio_rtcp_media_info: IMediaInfo | null
   }} = {}
+  private waitEventStartTime = dayjs()
 
   public async exit() {
-    this.isLoop = false
     if (!!this.media_manage) {
       Object.keys(this.media_manage).map(async key => {
         try {
@@ -54,7 +53,7 @@ export class Util {
       return res.data.params.token
     } catch (e) {
       console.error("createPeer is failed. error:" + e)
-      throw new Error("createPeer is failed. error:" + e)
+      throw e
     }
   }
 
@@ -74,7 +73,7 @@ export class Util {
       return mediaInfo
     } catch (e) {
       console.error("createMedia is failed. error:" + e)
-      throw new Error("createMedia is failed. error:" + e)
+      throw e
     }
   }
 
@@ -91,7 +90,7 @@ export class Util {
       return mediaInfo
     } catch (e) {
       console.error("createRtcp is failed. error:" + e)
-      throw new Error("createRtcp is failed. error:" + e)
+      throw e
     }
   }
 
@@ -109,7 +108,7 @@ export class Util {
       return media_connection_id
     } catch (e) {
       console.error("waitMedia is failed. error:" + e)
-      throw new Error("waitMedia is failed. error:" + e)
+      throw e
     }
   }
 
@@ -119,39 +118,37 @@ export class Util {
     audio_params: IMediaParams | null,
     video_rtcp_params: IMediaParams | null,
     audio_rtcp_params: IMediaParams | null) {
-    do {
-      try {
-        const media_info = this.media_manage[media_connection_id]
-        if (!media_info) {
-          return
-        }
-        const video_id = media_info.video_media_info?.id || null
-        const audio_id = media_info.audio_media_info?.id || null
-        const video_rtcp_id = media_info.video_rtcp_media_info?.id || null
-        const audio_rtcp_id = media_info.audio_rtcp_media_info?.id || null
-        await this.answer(
-          media_connection_id,
-          video_id,
-          video_params,
-          audio_id,
-          audio_params,
-          video_rtcp_id,
-          video_rtcp_params,
-          audio_rtcp_id,
-          audio_rtcp_params
-        )
-        await this.waitReady(media_connection_id)
-        if (!!media_info.video_media_info?.port) {
-          const gst_process = this.execGstreamCamera(media_info.video_media_info.port)
-          await this.waitStreamClose(media_connection_id)
-          this.killGstreamCamera(gst_process, media_info.video_media_info.port)
-        }
-        delete this.media_manage[media_connection_id]
-      } catch (e) {
-        console.error(e)
-        throws(e)
+    try {
+      const media_info = this.media_manage[media_connection_id]
+      if (!media_info) {
+        return
       }
-    } while (this.isLoop)
+      const video_id = media_info.video_media_info?.id || null
+      const audio_id = media_info.audio_media_info?.id || null
+      const video_rtcp_id = media_info.video_rtcp_media_info?.id || null
+      const audio_rtcp_id = media_info.audio_rtcp_media_info?.id || null
+      await this.answer(
+        media_connection_id,
+        video_id,
+        video_params,
+        audio_id,
+        audio_params,
+        video_rtcp_id,
+        video_rtcp_params,
+        audio_rtcp_id,
+        audio_rtcp_params
+      )
+      await this.waitReady(media_connection_id)
+      if (!!media_info.video_media_info?.port) {
+        const gst_process = this.execGstreamCamera(media_info.video_media_info.port)
+        await this.waitStreamClose(media_connection_id)
+        this.killGstreamCamera(gst_process, media_info.video_media_info.port)
+      }
+      delete this.media_manage[media_connection_id]
+    } catch (e) {
+      console.error("media is failed. error:" + e)
+      throw e
+    }
   }
 
   public createConstraints(
@@ -243,7 +240,7 @@ export class Util {
       return res.data.params.media_connection_id
     } catch (e) {
       console.error("call is failed. error:" + e)
-      throw new Error("call is failed. error:" + e)
+      throw e
     }
   }
 
@@ -286,27 +283,35 @@ export class Util {
       console.log("answer res.data:", res.data)
     } catch (e) {
       console.error("answer is failed. error:" + e)
-      throw new Error("answer is failed. error:" + e)
+      throw e
     }
   }
 
   public async waitEventFor(options: any, event: string): Promise<{}> {
-    try {
-      const res = await axios.request<string>(options)
-      // console.log("waitEventFor res.data:", res.data)
-      const eventRes: IEventRes = typeof res.data === "string" ? JSON.parse(res.data) : res.data
-      // console.log("waitEventFor eventRes:", eventRes)
-      // console.log("waitEventFor eventRes.event:", eventRes.event)
-      if (eventRes.event === event) {
-        return eventRes
-      } else  {
-        return await this.waitEventFor(options, event)
+    do {
+      try {
+        const res = await axios.request<string>(options)
+        // console.log("waitEventFor res.data:", res.data)
+        const eventRes: IEventRes = typeof res.data === "string" ? JSON.parse(res.data) : res.data
+        // console.log("waitEventFor eventRes:", eventRes)
+        // console.log("waitEventFor eventRes.event:", eventRes.event)
+        if (eventRes.event === event) {
+          return eventRes
+        }
+      } catch (e) {
+        if (!!e.response && e.response.status == 408) {
+          const now = dayjs()
+          const diffHour = now.diff(this.waitEventStartTime, "hour")
+          if (diffHour >= 12) {
+            this.waitEventStartTime = now
+            console.error(`${now.format()} waitEventFor is failed. error:${e} diffHour:${diffHour}`)
+            throw e
+          }
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
       }
-    } catch (e) {
-      // console.error("waitEventFor event:", event, " is failed. error:", e)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return await this.waitEventFor(options, event)
-    }
+    } while (true)
   }
 
   public async waitCall(peer_id: string, peer_token: string): Promise<string> {
@@ -327,7 +332,7 @@ export class Util {
       return res.call_params.media_connection_id
     } catch (e) {
       console.error("waitCall is failed. error:" + e)
-      throw new Error("waitCall is failed. error:" + e)
+      throw e
     }
   }
 
@@ -346,7 +351,7 @@ export class Util {
       return
     } catch (e) {
       console.error("waitReady is failed. error:" + e)
-      throw new Error("waitReady is failed. error:" + e)
+      throw e
     }
   }
 
@@ -364,7 +369,7 @@ export class Util {
       console.log("waitStream res:", res)
     } catch (e) {
       console.error("waitStream is failed. error:" + e)
-      throw new Error("waitStream is failed. error:" + e)
+      throw e
     }
   }
 
@@ -382,7 +387,7 @@ export class Util {
       console.log("waitStreamClose res:", res)
     } catch (e) {
       console.error("waitStreamClose is failed. error:" + e)
-      throw new Error("waitStreamClose is failed. error:" + e)
+      throw e
     }
   }
 
@@ -403,7 +408,7 @@ export class Util {
       console.log("waitClose res:", res)
     } catch (e) {
       console.error("waitClose is failed. error:" + e)
-      throw new Error("waitClose is failed. error:" + e)
+      throw e
     }
   }
 
@@ -419,7 +424,7 @@ export class Util {
       console.log("deletePeer res.data:", res.data)
     } catch (e) {
       console.error("deletePeer is failed. error:" + e)
-      throw new Error("deletePeer is failed. error:" + e)
+      throw e
     }
   }
 
@@ -430,7 +435,7 @@ export class Util {
       console.log("deleteMedia res.data:", res.data)
     } catch (e) {
       console.error("deleteMedia is failed. error:" + e)
-      throw new Error("deleteMedia is failed. error:" + e)
+      throw e
     }
   }
 
