@@ -19,7 +19,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "dayjs": "^1.9.6",
     "diskusage": "^1.1.3"
