@@ -25,6 +25,8 @@ export class Util {
     audio_rtcp_media_info: IMediaInfo | null
   }} = {}
   private waitEventStartTime = dayjs()
+  private periodic_reconnection =
+    !!process.env.PERIODIC_RECONNECTION ? process.env.PERIODIC_RECONNECTION === "true" : false
 
   public async exit() {
     if (!!this.media_manage) {
@@ -299,7 +301,7 @@ export class Util {
           return eventRes
         }
       } catch (e) {
-        if (!!e.response && e.response.status == 408) {
+        if (this.periodic_reconnection && !!e.response && e.response.status == 408) {
           const now = dayjs()
           const diffHour = now.diff(this.waitEventStartTime, "hour")
           if (diffHour >= 12) {
