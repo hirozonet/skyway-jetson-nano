@@ -1,7 +1,9 @@
 const path = require('path');
 const nodeExternals = require('webpack-node-externals');
+const MODE = process.env.NODE_ENV;
 
 module.exports = {
+  mode: MODE,
   entry: {
     app: './src/app.ts'
   },
