@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import dayjs from 'dayjs'
 import fs from 'fs'
 import { ChildProcess, spawn, execSync } from 'child_process'
@@ -301,7 +301,8 @@ export class Util {
           return eventRes
         }
       } catch (e) {
-        if (this.periodic_reconnection && !!e.response && e.response.status == 408) {
+        const ae = e as AxiosError
+        if (this.periodic_reconnection && !!ae && !!ae.response && ae.response.status == 408) {
           const now = dayjs()
           const diffHour = now.diff(this.waitEventStartTime, "hour")
           if (diffHour >= 12) {

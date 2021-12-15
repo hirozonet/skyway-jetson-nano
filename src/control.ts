@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import { IMediaParams } from './interfaces'
 import { Util } from './util'
 
@@ -59,7 +60,8 @@ export class Control {
               this.audio_rtcp_params)
           }
         } catch (e) {
-          if (!!e.response && e.response.status == 408) {
+          const ae = e as AxiosError
+          if (!!ae && !!ae.response && ae.response.status == 408) {
             if (!!this.peer_token) {
               try {
                 await this.util.deletePeer(this.peer_id, this.peer_token)
